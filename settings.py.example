@@ -1,0 +1,15 @@
+# the address to the LDAP server
+LDAP_HOST         = 'ldap://localhost:389'
+
+# the configuration for the database
+DATABASE_NAME     = 'my database'
+DATABASE_USER     = 'my user name'
+DATABASE_PASSWORD = 'my secret password'
+DATABASE_HOST     = 'localhost'
+
+# file path
+DATA_PATH         = '/var/www/binaries'
+TEMP_PATH         = './tmp/'
+
+# when content get added, call this command in a shell
+ONADD_SHELL       = None
