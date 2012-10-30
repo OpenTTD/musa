@@ -10,6 +10,7 @@ import socket
 import os
 import glob
 import re
+from getpass import getpass
 from tempfile import NamedTemporaryFile
 from validate import validate
 
@@ -143,7 +144,7 @@ def main():
 	if options.username is None:
 		options.username = raw_input("Please enter your username: ")
 	if options.password is None:
-		options.password = raw_input("Please enter your password: ")
+		options.password = getpass("Please enter your password: ")
 	check = raw_input("are you one of the authors of this content, if so answer 'yes I am': ")
 
 	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
