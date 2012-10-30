@@ -22,7 +22,7 @@ def package_text(ini_parser, tar, tar_path, package_files):
 	elif ini_parser.has_option("musa", "description_text"):
 		description_text = ini_parser.get("musa", "description_text")
 	else:
-		raise MusaException("no %s specified in the configuration file" % field)
+		raise MusaException("Neither description_text nor description_file specified in the configuration file")
 
 	if len(description_text) > 512:
 		raise MusaException("value for description is too long")
