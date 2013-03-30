@@ -62,7 +62,7 @@ def check_content(username, metadata):
 		if row[4] == "1":
 			raise MusaException("this content is blacklisted")
 		if row[5] == "1":
-			prevId = row[0]
+			prevId = int(row[0])
 			users.append(row[6])
 
 	if len(users) > 0 and username not in users:
@@ -137,7 +137,7 @@ def add_content(username, metadata, filename):
 			db_conn.query("INSERT INTO bananas_file_tags (tag_id, file_id) VALUES (%d, %d)" % (tag_id, file_id))
 
 		if metadata['prevId'] is not None:
-			db_conn.query("UPDATE bananas_file SET published=0, invalidedBy_id=%d WHERE id=%d" % (file_id, metadata['prevId']))
+			db_conn.query("UPDATE bananas_file SET published=0, invalidatedBy_id=%d WHERE id=%d" % (file_id, metadata['prevId']))
 
 		directory = os.path.join(DATA_PATH, "%d" % (file_id / 100))
 		if not os.path.exists(directory):
