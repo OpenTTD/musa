@@ -68,6 +68,9 @@ def check_content(username, metadata):
 	if len(users) > 0 and username not in users:
 		raise MusaException("you are no author for this content; you cannot update it")
 
+	if prevId == None and metadata['type'] in ['Scenario', 'Heightmap']:
+		raise MusaException("heightmaps and scenarios must be initially uploaded via bananas web manager to obtain a uniqueid")
+
 	metadata['prevId'] = prevId
 	metadata['resolved_dependencies'] = []
 	for dep in metadata['dependencies']:

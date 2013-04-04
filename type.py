@@ -1,8 +1,10 @@
 from ConfigParser import ConfigParser
 import hashlib
 import os
+import re
 import array
 from grfid import get_grfid
+from scriptid import get_script_short_name
 from struct import unpack
 from exception import MusaException
 
@@ -14,11 +16,34 @@ obg_ini = {
 }
 
 def find_file_in_list(files, end):
-	rets = [ file for file in files if file.endswith(end) ]
+	try:
+		# Assume end is a string
+		rets = [ file for file in files if file.endswith(end) ]
+	except:
+		# If that doesn't work try to interpret end as a collection of strings
+		rets = []
+		for e in end:
+			rets += [ file for file in files if file.endswith(e) ]
+
 	if len(rets) > 1:
-		raise MusaException("multiple %s files" % end)
+		if return_none_on_error:
+			return None
+		else:
+			raise MusaException("multiple %s files" % end)
 	if len(rets) == 0:
-		raise MusaException("no %s file" % end)
+		if return_none_on_error:
+			return None
+		else:
+			raise MusaException("no %s file" % end)
+
+	return rets[0]
+
+def find_exact_file_in_list(files, filename):
+	rets = [ file for file in files if os.path.basename(file) == filename ]
+	if len(rets) > 1:
+		raise MusaException("multiple %s files" % filename)
+	if len(rets) == 0:
+		raise MusaException("no %s file" % filename)
 
 	return rets[0]
 
@@ -41,7 +66,7 @@ def validate_md5(file, md5, size):
 		while size > 0:
 			data = file.read(min(8192, size))
 			if data is None or len(data) == 0:
-				raise MusaException("Could not read whole file")
+				break
 
 			md5sum.update(data)
 			size -= len(data)
@@ -112,13 +137,38 @@ def get_md5sums(ini_parser, sections, files):
 
 	return grfs
 
+def get_md5sum(f):
+	return int(hashlib.md5(f.read()).hexdigest(), 16)
+
+def package_script(tar, tar_path, files, infofile):
+	filename = find_exact_file_in_list(files, infofile)
+	short_name = get_script_short_name(open(filename))
+	if len(short_name) != 4:
+		raise MusaException("Invalid short name")
+	uniqueid = (ord(short_name[0]) << 0) + (ord(short_name[1]) << 8) + (ord(short_name[2]) << 16) + (ord(short_name[3]) << 24)
+
+	md5sum = 0
+	scriptFiles = list()
+	for file in files:
+		ext = file.split(".")[-1]
+		if ext == "nut":
+			md5sum ^= validate_md5(open(file, "rb"), None, os.stat(file).st_size)
+
+		if ext == "nut" or re.search("\/|\\\\lang\/|\\\\.*\.txt$", file) != None:
+			scriptFiles.append(file)
+
+	for file in scriptFiles:
+		tar.add(file, arcname=os.path.join(tar_path, os.path.basename(file)))
+		files.remove(file)
+
+
+	return { 'uniqueid': uniqueid, 'md5sum': "%032x" % md5sum }
+
 def package_ai(tar, tar_path, files):
-	raise MusaException("AIs are not supported yet")
-	return { 'uniqueid': 0, 'md5sum': 0 }
+	return package_script(tar, tar_path, files, "info.nut")
 
 def package_ailib(tar, tar_path, files):
-	raise MusaException("AI libraries are not supported yet")
-	return { 'uniqueid': 0, 'md5sum': 0 }
+	return package_script(tar, tar_path, files, "library.nut")
 
 def package_bg(tar, tar_path, files):
 	(obg, ini_parser, shortname) = validate_packaging_ini(files, obg_ini, ".obg")
@@ -126,7 +176,7 @@ def package_bg(tar, tar_path, files):
 
 	md5sum = 0
 	for name, fname, md5 in grfs:
-		md5sum ^= validate_md5(open(fname), md5, os.stat(fname).st_size)
+		md5sum ^= validate_md5(open(fname, "rb"), md5, os.stat(fname).st_size)
 		tar.add(fname, arcname=os.path.join(tar_path, name))
 		files.remove(fname)
 
@@ -143,16 +193,18 @@ def package_bs(tar, tar_path, files):
 	return { 'uniqueid': 0, 'md5sum': 0 }
 
 def package_gs(tar, tar_path, files):
-	raise MusaException("Game scripts are not supported yet")
-	return { 'uniqueid': 0, 'md5sum': 0 }
+	return package_script(tar, tar_path, files, "info.nut")
 
 def package_gslib(tar, tar_path, files):
-	raise MusaException("Game script libraries are not supported yet")
-	return { 'uniqueid': 0, 'md5sum': 0 }
+	return package_script(tar, tar_path, files, "library.nut")
 
 def package_hm(tar, tar_path, files):
-	raise MusaException("Heightmaps are not supported yet")
-	return { 'uniqueid': 0, 'md5sum': 0 }
+	filename = find_file_in_list(files, [".png", ".bmp"])
+	md5sum = validate_md5(open(filename, "rb"), None, os.stat(filename).st_size)
+
+	tar.add(filename, arcname=os.path.join(tar_path, os.path.basename(filename)))
+	files.remove(filename)
+	return { 'md5sum': "%032x" % md5sum }
 
 def package_newgrf(tar, tar_path, files):
 	filename = find_file_in_list(files, ".grf")
@@ -160,23 +212,47 @@ def package_newgrf(tar, tar_path, files):
 	if uniqueid >> 24 == 0xFF:
 		raise MusaException("Invalid/system GRF")
 
-	md5sum = validate_md5(open(filename), None, os.stat(filename).st_size)
+	md5sum = validate_md5(open(filename, "rb"), None, os.stat(filename).st_size)
 
 	tar.add(filename, arcname=os.path.join(tar_path, os.path.basename(filename)))
 	files.remove(filename)
 	return { 'uniqueid': uniqueid, 'md5sum': "%032x" % md5sum }
 
 def package_scen(tar, tar_path, files):
-	raise MusaException("Scenarios are not supported yet")
-	return { 'uniqueid': 0, 'md5sum': 0 }
+	scn = find_file_in_list(files, ".scn")
+	md5sum = validate_md5(open(scn, "rb"), None, os.stat(scn).st_size)
+
+	tar.add(scn, arcname=os.path.join(tar_path, os.path.basename(scn)))
+	files.remove(scn)
+	return { 'md5sum': "%032x" % md5sum }
+
+def validate_script(metadata, tar, tar_path, suspect_filenames, infofile):
+	filename = find_exact_file_in_list(tar.getnames(), infofile)
+	short_name = get_script_short_name(tar.extractfile(filename))
+	if len(short_name) != 4:
+		raise MusaException("Invalid short name")
+	uniqueid = (ord(short_name[0]) << 0) + (ord(short_name[1]) << 8) + (ord(short_name[2]) << 16) + (ord(short_name[3]) << 24)
+	if metadata['uniqueid'] != uniqueid:
+		raise MusaException("Invalid short name")
+
+	md5sum = 0
+	for file in tar.getnames():
+		ext = file.split(".")[-1]
+		if ext == "nut":
+			md5sum ^= validate_md5(tar.extractfile(file), None, tar.getmember(file).size)
+
+		if file in suspect_filenames:
+			if ext == "nut" or re.search("\/|\\\\lang\/|\\\\.*\.txt$", file.lower()) != None:
+				suspect_filenames.remove(file)
+
+	if metadata['md5sum'] != "%032x" % md5sum:
+		raise MusaException("md5sum mismatch")
 
 def validate_ai(metadata, tar, tar_path, suspect_filenames):
-	raise MusaException("unsupported")
-	return
+	validate_script(metadata, tar, tar_path, suspect_filenames, "info.nut")
 
 def validate_ailib(metadata, tar, tar_path, suspect_filenames):
-	raise MusaException("unsupported")
-	return
+	validate_script(metadata, tar, tar_path, suspect_filenames, "library.nut")
 
 def validate_bg(metadata, tar, tar_path, suspect_filenames):
 	if tar is None:
@@ -212,16 +288,15 @@ def validate_bs(metadata, tar, tar_path, suspect_filenames):
 	return
 
 def validate_gs(metadata, tar, tar_path, suspect_filenames):
-	raise MusaException("unsupported")
-	return
+	validate_script(metadata, tar, tar_path, suspect_filenames, "info.nut")
 
 def validate_gslib(metadata, tar, tar_path, suspect_filenames):
-	raise MusaException("unsupported")
-	return
+	validate_script(metadata, tar, tar_path, suspect_filenames, "library.nut")
 
 def validate_hm(metadata, tar, tar_path, suspect_filenames):
-	raise MusaException("unsupported")
-	return
+	filename = find_file_in_list(tar.getnames(), [".png", ".bmp"])
+	validate_md5(tar.extractfile(filename), metadata['md5sum'], tar.getmember(filename).size)
+	suspect_filenames.remove(filename)
 
 def validate_newgrf(metadata, tar, tar_path, suspect_filenames):
 	if metadata['uniqueid'] >> 24 == 0xFF:
@@ -238,8 +313,9 @@ def validate_newgrf(metadata, tar, tar_path, suspect_filenames):
 	suspect_filenames.remove(filename)
 
 def validate_scen(metadata, tar, tar_path, suspect_filenames):
-	raise MusaException("unsupported")
-	return
+	scn = find_file_in_list(tar.getnames(), ".scn")
+	validate_md5(tar.extractfile(scn), metadata['md5sum'], tar.getmember(scn).size)
+	suspect_filenames.remove(scn)
 
 
 types = {
@@ -266,6 +342,16 @@ def package_type(ini_parser, tar, tar_path, files):
 
 	metadata = { 'package_type': type_name }
 	metadata.update(types[type_name]['package'](tar, tar_path, files))
+
+	# uniqueid cannot be obtained from the Scenario (.scn) or Heightmap image file.
+	if type_name in ["Scenario", "Heightmap"]:
+		uniqueid_str = ini_parser.get("musa", "uniqueid")
+		if len(uniqueid_str) == 8:
+			metadata['uniqueid'] = int(uniqueid_str, 16)
+		elif (len(uniqueid_str) > 0) and uniqueid_str[0] != '0':
+			metadata['uniqueid'] = int(uniqueid_str, 10)
+		else:
+			raise MusaException("Invalid uniqueid syntax in ini file")
 
 	return metadata
 

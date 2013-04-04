@@ -59,9 +59,13 @@ def main():
 	except:
 		cmd_parser.error("regular expression is invalid")
 
+	tar = None
+	tar_file = None
 	try:
 		if options.verbose: print "creating temporary tarball..."
-		tar_file = NamedTemporaryFile(dir=".")
+		# In Windows the temporary file will get removed when the tar
+		# is closed the first time, if delete is not set to False.
+		tar_file = NamedTemporaryFile(dir=".", delete=False)
 		tar = tarfile.open(tar_file.name, mode='w:gz')
 		metadata = {}
 
@@ -112,6 +116,12 @@ def main():
 	except MusaException, inst:
 		print inst.args[0]
 		return
+	finally:
+		if tar != None and not tar.closed:
+			tar.close()
+		if tar_file != None:
+			tar_file.close()
+			os.remove(tar_file.name)
 
 	def send_data(sock, data, binary=False):
 		if binary:
