@@ -16,15 +16,9 @@ from validate import validate
 
 from exception import MusaException
 from license import package_license
-from misc import package_misc
+from misc import package_misc, parse_file_args
 from type import package_type
 from text import package_text
-
-def match_excluders(excluders, path):
-	for excluder in excluders:
-		if excluder.search(path):
-			return True
-	return False
 
 def main():
 	cmd_parser = OptionParser(usage="%prog -c <config> [-dhqv] [-x <regexp>] [-u username] [-p password] <files>", version="%prog 0.0")
@@ -76,18 +70,7 @@ def main():
 		metadata.update(package_license(ini_parser, tar, metadata['safe_name']))
 
 		if options.verbose: print "packaging type information..."
-		package_files = set()
-		for arg in args:
-			for path in glob.glob(arg):
-				if os.path.isfile(path):
-					if not match_excluders(excluders, path):
-						package_files.add(path)
-				if os.path.isdir(path) and options.recursive:
-					for root, dirs, files in os.walk(path):
-						for file in files:
-							path = os.path.join(root, file)
-							if not match_excluders(excluders, path):
-								package_files.add(path)
+		package_files = parse_file_args(args, excluders)
 		if options.verbose:
 			print "the following files will be added:"
 			for file in package_files:

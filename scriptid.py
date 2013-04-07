@@ -34,3 +34,18 @@ def get_script_short_name(f):
 
 	return shortName
 
+def get_script_type(f):
+
+	for line in f.readlines():
+
+		if re.search("extends\\s+GSInfo", line) != None:
+			return 'GS'
+		elif re.search("extends\\s+GSLibrary", line) != None:
+			return 'GS'
+		elif re.search("extends\\s+AIInfo", line) != None:
+			return 'AI'
+		elif re.search("extends\\s+AILibrary", line) != None:
+			return 'AI'
+
+	raise MusaException('Unknown script type');
+

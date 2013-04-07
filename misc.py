@@ -1,10 +1,33 @@
 from exception import MusaException
+import glob
+import os
 
 fields = {
 	"name":    32,
 	"version": 16,
 	"url":     96,
 }
+
+def match_excluders(excluders, path):
+	for excluder in excluders:
+		if excluder.search(path):
+			return True
+	return False
+
+def parse_file_args(args, excluders):
+	files = set()
+	for arg in args:
+		for path in glob.glob(arg):
+			if os.path.isfile(path):
+				if not match_excluders(excluders, path):
+					files.add(path)
+			if os.path.isdir(path) and options.recursive:
+				for root, dirs, files in os.walk(path):
+					for file in files:
+						path = os.path.join(root, file)
+						if not match_excluders(excluders, path):
+							files.add(path)
+	return files
 
 def check_utf8(text, type):
 	if not isinstance(text, str):
