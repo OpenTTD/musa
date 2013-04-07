@@ -26,15 +26,9 @@ def find_file_in_list(files, end):
 			rets += [ file for file in files if file.endswith(e) ]
 
 	if len(rets) > 1:
-		if return_none_on_error:
-			return None
-		else:
-			raise MusaException("multiple %s files" % end)
+		raise MusaException("multiple %s files" % end)
 	if len(rets) == 0:
-		if return_none_on_error:
-			return None
-		else:
-			raise MusaException("no %s file" % end)
+		raise MusaException("no %s file" % end)
 
 	return rets[0]
 
