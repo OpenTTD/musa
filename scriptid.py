@@ -17,9 +17,9 @@ def get_script_short_name(f):
 		if scanning == 2 and line.find("return") != -1:
 			line = line[line.find("return"):]
 			scanning = 3
-		if scanning == 3 and line.find('//') != -1: # watch out for // ".."
+		if scanning == 3 and line.find('//') != -1 and line.find('//') < line.find('"'): # watch out for // ".."
 			continue
-		if scanning == 3 and line.find('/*') != -1: # watch out for /*".."*/
+		if scanning == 3 and line.find('/*') != -1 and line.find('/*') < line.find('"'): # watch out for /*".."*/
 			line = line[line.find('/*') + 1:]
 			scanning = 4
 		if scanning == 4 and line.find('*/') != -1:
