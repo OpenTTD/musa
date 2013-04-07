@@ -221,6 +221,9 @@ def package_scen(tar, tar_path, files):
 	return { 'md5sum': "%032x" % md5sum }
 
 def validate_script(metadata, tar, tar_path, suspect_filenames, infofile):
+	if tar is None:
+		return
+
 	filename = find_exact_file_in_list(tar.getnames(), infofile)
 	short_name = get_script_short_name(tar.extractfile(filename))
 	if len(short_name) != 4:
@@ -288,6 +291,9 @@ def validate_gslib(metadata, tar, tar_path, suspect_filenames):
 	validate_script(metadata, tar, tar_path, suspect_filenames, "library.nut")
 
 def validate_hm(metadata, tar, tar_path, suspect_filenames):
+	if tar is None:
+		return
+
 	filename = find_file_in_list(tar.getnames(), [".png", ".bmp"])
 	validate_md5(tar.extractfile(filename), metadata['md5sum'], tar.getmember(filename).size)
 	suspect_filenames.remove(filename)
@@ -307,6 +313,9 @@ def validate_newgrf(metadata, tar, tar_path, suspect_filenames):
 	suspect_filenames.remove(filename)
 
 def validate_scen(metadata, tar, tar_path, suspect_filenames):
+	if tar is None:
+		return
+
 	scn = find_file_in_list(tar.getnames(), ".scn")
 	validate_md5(tar.extractfile(scn), metadata['md5sum'], tar.getmember(scn).size)
 	suspect_filenames.remove(scn)
