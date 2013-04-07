@@ -23,7 +23,8 @@ def checkdependency(dep):
 		raise MusaException("invalid dependency type")
 
 	if len(data[1]) == 4:
-		id = (ord(shortName[0]) << 0) + (ord(shortName[1]) << 8) + (ord(shortName[2]) << 16) + (ord(shortName[3]) << 24)
+		short_name = data[1]
+		id = (ord(short_name[0]) << 0) + (ord(short_name[1]) << 8) + (ord(short_name[2]) << 16) + (ord(short_name[3]) << 24)
 	elif len(data[1]) == 8:
 		try:
 			id = int(data[1], 16)
