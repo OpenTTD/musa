@@ -53,7 +53,7 @@ def main():
 
 	try:
 		excluders = [ re.compile("(\.svn|\.hg|\.git)") ]
-		if options.exclude is not None and options.exclude != "":
+		if options.exclude is not None:
 			for exclude in options.exclude:
 				excluders.append(re.compile(exclude))
 	except:
