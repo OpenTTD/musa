@@ -124,7 +124,7 @@ def add_content(username, metadata, filename):
 			db_conn.query("INSERT INTO bananas_file_authors (author_id, file_id) VALUES (%d, %d)" % (author_id, file_id))
 
 		for dep_id in metadata['resolved_dependencies']:
-			db_conn.query("INSERT INTO bananas_file_deps (from_file_id, to_file_id) VALUES (%d, %d)" % (dep_id, file_id))
+			db_conn.query("INSERT INTO bananas_file_deps (from_file_id, to_file_id) VALUES (%d, %d)" % (file_id, dep_id))
 
 		for tag in metadata['tags']:
 			db_conn.query("SELECT id FROM bananas_tag WHERE name = '%s'" % (_mysql.escape_string(tag)))
