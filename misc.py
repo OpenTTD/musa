@@ -168,9 +168,12 @@ def package_misc(ini_parser):
 
 	metadata['authors'] = parse_list(ini_parser, 'authors')
 
-	metadata['dependencies'] = parse_list(ini_parser, 'dependencies')
-	for dep in metadata['dependencies']:
-		checkdependency(dep)
+	raw_deps = parse_list(ini_parser, 'dependencies')
+	dep_list = list()
+	for dep in raw_deps:
+		type, uniqueid, md5sum = checkdependency(dep)
+		dep_list.append(type + ":" + "%08X" % uniqueid + ":" + "%032x" % md5sum)
+	metadata['dependencies'] = dep_list
 
 	return metadata
 
