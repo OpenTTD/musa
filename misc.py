@@ -1,4 +1,5 @@
 from exception import MusaException
+import StringIO
 import glob
 import os
 
@@ -28,6 +29,12 @@ def parse_file_args(args, options, excluders):
 						if not match_excluders(excluders, path):
 							files.add(path)
 	return files
+
+def tar_join_path(root, file):
+	if len(root) == 0 or root[-1] == '/':
+		return root + file
+	else:
+		return root + '/' + file
 
 def check_utf8(text, type):
 	if not isinstance(text, str):

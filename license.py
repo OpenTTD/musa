@@ -1,6 +1,7 @@
 from __future__ import with_statement
 import StringIO
 from tarfile import TarInfo
+from misc import tar_join_path
 import os
 from exception import MusaException
 
@@ -2859,14 +2860,14 @@ def package_license(ini_parser, tar, tar_path):
 			raise MusaException("unknown (custom) license file \"%s\"" % license_name)
 
 	file = StringIO.StringIO(license_text)
-	info = TarInfo(os.path.join(tar_path, 'license.txt'))
+	info = TarInfo(tar_join_path(tar_path, 'license.txt'))
 	info.size = len(license_text)
 	tar.addfile(info, file)
 
 	return { 'license_type' : license_type }
 
 def validate_license(metadata, tar, tar_path, suspect_filenames):
-	copying = os.path.join(tar_path, 'license.txt')
+	copying = tar_join_path(tar_path, 'license.txt')
 	if tar is not None:
 		try:
 			tar.getmember(copying)
