@@ -1,5 +1,6 @@
 from exception import MusaException
 import StringIO
+from tarfile import TarInfo
 import glob
 import os
 
@@ -35,6 +36,12 @@ def tar_join_path(root, file):
 		return root + file
 	else:
 		return root + '/' + file
+
+def tar_add_file_from_string(tar, tar_path, filename, content):
+	file = StringIO.StringIO(content)
+	info = TarInfo(tar_join_path(tar_path, filename))
+	info.size = len(content)
+	tar.addfile(info, file)
 
 def check_utf8(text, type):
 	if not isinstance(text, str):
