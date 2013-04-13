@@ -22,8 +22,8 @@ def parse_file_args(args, options, excluders):
 				if not match_excluders(excluders, path):
 					files.add(path)
 			if os.path.isdir(path) and options.recursive:
-				for root, dirs, files in os.walk(path):
-					for file in files:
+				for root, dirs, sub_files in os.walk(path):
+					for file in sub_files:
 						path = os.path.join(root, file)
 						if not match_excluders(excluders, path):
 							files.add(path)
