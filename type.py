@@ -174,8 +174,10 @@ def package_script(tar, tar_path, files, infofile):
 		if ext == "nut" or re.search("\/|\\\\lang\/|\\\\.*\.txt$", file) != None:
 			scriptFiles.append(file)
 
+	common_path = os.path.commonprefix(scriptFiles)
 	for file in scriptFiles:
-		tar.add(file, arcname=os.path.join(tar_path, os.path.basename(file)))
+		content_file_path = file[len(common_path):].replace("\\", "/") # remove common path
+		tar.add(file, arcname=os.path.join(tar_path, content_file_path))
 		files.remove(file)
 
 
