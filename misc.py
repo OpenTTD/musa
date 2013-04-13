@@ -14,7 +14,7 @@ def match_excluders(excluders, path):
 			return True
 	return False
 
-def parse_file_args(args, excluders):
+def parse_file_args(args, options, excluders):
 	files = set()
 	for arg in args:
 		for path in glob.glob(arg):

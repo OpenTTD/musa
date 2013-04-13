@@ -72,7 +72,7 @@ def main():
 			metadata.update(package_license(ini_parser, tar, metadata['safe_name']))
 
 			if options.verbose: print "packaging type information..."
-			package_files = parse_file_args(args, excluders)
+			package_files = parse_file_args(args, options, excluders)
 			if options.verbose:
 				print "the following files will be added:"
 				for file in package_files:

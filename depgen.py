@@ -98,7 +98,7 @@ def main():
 		cmd_parser.error("regular expression is invalid")
 
 
-	files = parse_file_args(args, excluders)
+	files = parse_file_args(args, options, excluders)
 	if options.verbose:
 		print "the following files will be examined:"
 		for file in files:
