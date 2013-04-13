@@ -18,15 +18,12 @@ obg_ini = {
 	'origin':   ['default']
 }
 
+# @param files  list of files
+# @param end    list of accepted file ends
 def find_file_in_list(files, end):
-	try:
-		# Assume end is a string
-		rets = [ file for file in files if file.endswith(end) ]
-	except:
-		# If that doesn't work try to interpret end as a collection of strings
-		rets = []
-		for e in end:
-			rets += [ file for file in files if file.endswith(e) ]
+	rets = []
+	for e in end:
+		rets += [ file for file in files if file.endswith(e) ]
 
 	if len(rets) > 1:
 		raise MusaException("multiple %s files" % end)
@@ -97,7 +94,7 @@ def validate_ini(file, expected_sections):
 	return (ini_parser, shortname)
 
 def validate_packaging_ini(files, expected_sections, extension):
-	filename = find_file_in_list(files, extension)
+	filename = find_file_in_list(files, [extension])
 	try:
 		fd = open(filename)
 		(ini_parser, shortname) = validate_ini(fd, expected_sections)
@@ -110,7 +107,7 @@ def validate_packaging_ini(files, expected_sections, extension):
 
 def validate_packaged_ini(tar, expected_sections, extension):
 	try:
-		filename = find_file_in_list(tar.getnames(), extension)
+		filename = find_file_in_list(tar.getnames(), [extension])
 		fd = tar.extractfile(filename)
 		(ini_parser, shortname) = validate_ini(fd, expected_sections)
 		fd.close()
@@ -146,7 +143,7 @@ def get_md5sums(ini_parser, sections, files):
 			raise MusaException("no MD5 checksum given for %s" % name)
 
 		md5 = ini_parser.get('md5s', name)
-		fname = find_file_in_list(files, name)
+		fname = find_file_in_list(files, [name])
 		grfs.append((name, fname, md5))
 
 	return grfs
@@ -233,7 +230,7 @@ def package_hm(tar, tar_path, files, uniqueid, title):
 	return package_hm_scen(tar, tar_path, files, uniqueid, title, [".png", ".bmp"])
 
 def package_newgrf(tar, tar_path, files):
-	filename = find_file_in_list(files, ".grf")
+	filename = find_file_in_list(files, [".grf"])
 	uniqueid = get_grfid(open(filename))
 	if uniqueid >> 24 == 0xFF:
 		raise MusaException("Invalid/system GRF")
@@ -245,7 +242,7 @@ def package_newgrf(tar, tar_path, files):
 	return { 'uniqueid': uniqueid, 'md5sum': "%032x" % md5sum }
 
 def package_scen(tar, tar_path, files, uniqueid, title):
-	return package_hm_scen(tar, tar_path, files, uniqueid, title, ".scn")
+	return package_hm_scen(tar, tar_path, files, uniqueid, title, [".scn"])
 
 def validate_script(metadata, tar, tar_path, suspect_filenames, infofile):
 	if tar is None:
@@ -342,7 +339,7 @@ def validate_newgrf(metadata, tar, tar_path, suspect_filenames):
 	if tar is None:
 		return
 
-	filename = find_file_in_list(tar.getnames(), ".grf")
+	filename = find_file_in_list(tar.getnames(), [".grf"])
 	md5sum = validate_md5(tar.extractfile(filename), metadata['md5sum'], tar.getmember(filename).size)
 	if metadata['uniqueid'] != get_grfid(tar.extractfile(filename)):
 		raise MusaException("uniqueid mismatch")
@@ -350,7 +347,7 @@ def validate_newgrf(metadata, tar, tar_path, suspect_filenames):
 	suspect_filenames.remove(filename)
 
 def validate_scen(metadata, tar, tar_path, suspect_filenames):
-	validate_hm_secn(metadata, tar, tar_path, suspect_filenames, ".scn")
+	validate_hm_secn(metadata, tar, tar_path, suspect_filenames, [".scn"])
 
 
 types = {
