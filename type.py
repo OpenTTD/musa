@@ -231,7 +231,7 @@ def package_hm(tar, tar_path, files, uniqueid, title):
 
 def package_newgrf(tar, tar_path, files):
 	filename = find_file_in_list(files, [".grf"])
-	uniqueid = get_grfid(open(filename))
+	uniqueid = get_grfid(open(filename, 'rb'))
 	if uniqueid >> 24 == 0xFF:
 		raise MusaException("Invalid/system GRF")
 
