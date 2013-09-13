@@ -1,0 +1,48 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\" Please adjust this date whenever revising the manpage.
+.Dd Sep 13, 2013
+.Dt MUSA 1
+.Sh NAME
+.Nm musa.py
+.Nd An open source uploader tool for OpenTTD's content service
+.Sh SYNOPSIS
+.Nm
+.Fl c Ar config_file
+.Op Fl dhqv
+.Op Fl x Ar regexp
+.Op Fl u Ar username
+.Op Fl p Ar password
+.Ar files
+.Sh DESCRIPTION
+The musa tool is used to simply upload large content into OpenTTD's content
+service. It is meant to be used as command line interface that creates a
+relative easy way to test packaging before doing uploads. It also prevents
+the server from needing to do the packaging, and does the initial validation
+at the client side. This way no content needs to be sent to the content
+service for checking, although the server performs all checks itself as
+well as sanity measure.
+.Sh OPTIONS
+.Bl -tag -width ". Fl r, Fl Fl recursive"
+.It Fl Fl version
+show program's version number and exit
+.It Fl h , Fl -help
+show this help message and exit
+.It Fl r , Fl  -recursive
+search for files recursively
+.It Fl v , Fl  -verbose
+print extra debug information
+.It Fl c Ar FILE , Sm off Fl -config No = Ar FILE Sm on
+the configuration file
+.It Fl x Ar EXCLUDE , Sm off Fl -exclude No = Ar EXCLUDE Sm on
+regular expressions of files to not include
+.It Fl d , Fl  -dryrun
+perform a dry run where all tests, including remote
+tests, are performed but the content is not uploaded
+into the content system
+.It Fl u Ar USERNAME , Sm off Fl -username No = Ar USERNAME Sm on
+the username for uploading content
+.It Fl p Ar PASSWORD , Sm off Fl -password No = Ar PASSWORD Sm on
+the password for uploading content
+.El
+.Sh SEE ALSO
+http://bananas.openttd.org/

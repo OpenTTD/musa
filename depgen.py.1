@@ -1,0 +1,33 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\" Please adjust this date whenever revising the manpage.
+.Dd Sep 13, 2013
+.Dt DEPGEN 1
+.Sh NAME
+.Nm depgen.py
+.Nd An open source tool for getting dependency data out of OpenTTD content
+.Sh SYNOPSIS
+.Nm
+.Op Fl hv
+.Ar tar files
+.Sh DESCRIPTION
+This depgen tool is for generating the dependency information needed in the
+configuration file of musa from a set of tar files that were acquired from
+the content service. This is useful as manually writing this dependency
+information is cumbersome and error prone.
+.Sh OPTIONS
+.Bl -tag -width ". Fl v, Fl Fl verbose"
+.It Fl Fl version
+show program's version number and exit
+.It Fl h , Fl -help
+show this help message and exit
+.It Fl v , Fl  -verbose
+print extra debug information
+the configuration file
+.It Fl x Ar EXCLUDE , Sm off Fl -exclude No = Ar EXCLUDE Sm on
+regular expressions of files to not include
+.It Fl l , Fl  -list
+display a human readable dependency list (as opposed for a comma separated
+list suitable to include in your musa ini file)
+.El
+.Sh SEE ALSO
+http://bananas.openttd.org/
