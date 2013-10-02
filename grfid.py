@@ -1,11 +1,3 @@
-# $Id$
-#
-# This file is part of musa.
-# musa is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, version 2.
-# musa is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-# See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with musa. If not, see <http://www.gnu.org/licenses/>.
-#
-
 from exception import MusaException
 import array
 import os
@@ -56,7 +48,7 @@ class GRFIDReader():
 					self.read_byte();
 
 	def swap(self, x):
-		return ((x >> 24) & 0xFF) | ((x >> 8) & 0xFF00) | ((x << 8) & 0xFF0000) | ((x << 24) & 0xFF000000);
+		return int(((x >> 24) & 0xFF) | ((x >> 8) & 0xFF00) | ((x << 8) & 0xFF0000) | ((x << 24) & 0xFF000000));
 
 	def read_size(self, grfcontversion):
 		ret = self.read_dword() if grfcontversion == 2 else self.read_word();
