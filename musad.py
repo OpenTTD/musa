@@ -26,9 +26,6 @@ from tempfile import NamedTemporaryFile
 
 from settings import *
 
-db_conn = _mysql.connect(DATABASE_HOST, DATABASE_USER, DATABASE_PASSWORD, DATABASE_NAME)
-db_conn.autocommit(False)
-
 def authenticate(username, password):
 	username = username.encode('utf-8')
 	password = password.encode('utf-8')
@@ -46,7 +43,7 @@ def authenticate(username, password):
 
 	return True
 
-def check_content(username, metadata):
+def check_content(username, metadata, db_conn):
 	db_conn.query("""
 		SELECT bananas_file.id, filename, version, uniquemd5, blacklist, published, username
 		FROM bananas_file
@@ -110,7 +107,7 @@ def check_content(username, metadata):
 			raise MusaException("duplicate %s authors in bananas" % author)
 		metadata['resolved_authors'].append(int(data[0][0]))
 
-def add_content(username, metadata, filename):
+def add_content(username, metadata, filename, db_conn):
 	db_conn.rollback()
 	try:
 		db_conn.query("""
@@ -160,6 +157,7 @@ def add_content(username, metadata, filename):
 
 		if ONADD_SHELL != None: os.system(ONADD_SHELL)
 	except Exception, inst:
+		print traceback.format_exc(10)
 		try:
 			# for some reason a rollback makes them linger somehow?!?
 			db_conn.query("DELETE FROM bananas_file WHERE id = %d" % file_id)
@@ -178,6 +176,7 @@ class MusaHandler(asyncore.dispatcher_with_send):
 		self.file = None
 		self.binary = False
 		self.user = None
+		self.db_conn = None
 
 	def handle_version(self, version):
 		if not isinstance(version, str):
@@ -215,7 +214,10 @@ class MusaHandler(asyncore.dispatcher_with_send):
 		if not self.user in self.metadata['authors']:
 			raise MusaException("you are not listed as author for this content")
 
-		check_content(self.user, self.metadata)
+		self.db_conn = _mysql.connect(DATABASE_HOST, DATABASE_USER, DATABASE_PASSWORD, DATABASE_NAME)
+		self.db_conn.autocommit(False)
+
+		check_content(self.user, self.metadata, self.db_conn)
 		self.send("metadata validated at server side")
 
 		self.binary = True
@@ -253,7 +255,7 @@ class MusaHandler(asyncore.dispatcher_with_send):
 			raise
 
 		# And push it into the database and such
-		add_content(self.user, self.metadata, self.file.name)
+		add_content(self.user, self.metadata, self.file.name, self.db_conn)
 
 		# Only close the file afterwards as this close removes the file
 		self.file.close()
