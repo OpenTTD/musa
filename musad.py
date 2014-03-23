@@ -44,6 +44,26 @@ def authenticate(username, password):
 	return True
 
 def check_content(username, metadata, db_conn):
+	# Verify name
+	db_conn.query("""
+		SELECT username
+		FROM bananas_file
+		JOIN bananas_type ON bananas_file.type_id = bananas_type.id
+		JOIN bananas_file_authors ON bananas_file.id = bananas_file_authors.file_id
+		JOIN bananas_author ON bananas_author.id = bananas_file_authors.author_id
+		JOIN auth_user ON auth_user.id = bananas_author.user_id
+		WHERE bananas_file.name = "%s" AND bananas_type.name = "%s"
+		ORDER BY bananas_file.id
+		""" % (_mysql.escape_string(metadata['name']), metadata['package_type']))
+
+	users = []
+	for row in db_conn.store_result().fetch_row(maxrows=0):
+		users.append(row[0])
+
+	if len(users) > 0 and not username in users:
+		raise MusaException("the supplied content name is already used by another author")
+
+	# Verify ownership of uniqueid
 	db_conn.query("""
 		SELECT bananas_file.id, filename, version, uniquemd5, blacklist, published, username
 		FROM bananas_file

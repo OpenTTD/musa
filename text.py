@@ -58,6 +58,16 @@ def validate_text(metadata, tar, tar_path, suspect_filenames):
 
 	check_utf8(metadata['description'], "description")
 
+	if not 'name' in metadata:
+		raise MusaException("name is missing")
+	if not isinstance(metadata['name'], str):
+		raise MusaException("name is invalid")
+
+	if len(metadata['name']) > 32:
+		raise MusaException("value for name is too long")
+
+	check_utf8(metadata['name'], "name")
+
 	if tar is not None:
 		for member in tar.getnames():
 			bname = os.path.basename(member)
